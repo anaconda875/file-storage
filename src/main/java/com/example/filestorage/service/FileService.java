@@ -5,9 +5,10 @@ import java.nio.file.Path;
 
 public interface FileService {
 
-    Path writeAesFile(String fileName, byte[] bytes) throws IOException;
+    Path writeAesFile(String filename, byte[] bytes) throws IOException;
 
-    Path writeImageFile(String fileName, byte[] bytes) throws IOException;
+    Path writeImageFile(String filename, byte[] bytes) throws IOException;
 
+    Path retrieveImagePath(String filename);
 
 }

@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
                 throw new DuplicatedEntityException("Duplicated user found [" + u.getId() + "]");
             });
 
-            fileService.writeAesFile(hash + ".key", registerRequest.getKey());
+            fileService.writeAesFile(hash + ".key", key.getEncoded());
             User user = new User(hash, registerRequest.getName(), hash + ".key", null);
             user = userRepository.save(user);
 

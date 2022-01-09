@@ -33,13 +33,18 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public Path writeAesFile(String fileName, byte[] bytes) throws IOException {
-        return Files.write(Paths.get(aesLocation, fileName), bytes);
+    public Path writeAesFile(String filename, byte[] bytes) throws IOException {
+        return Files.write(Paths.get(aesLocation, filename), bytes);
     }
 
     @Override
-    public Path writeImageFile(String fileName, byte[] bytes) throws IOException {
-        return Files.write(Paths.get(imageLocation, fileName), bytes);
+    public Path writeImageFile(String filename, byte[] bytes) throws IOException {
+        return Files.write(Paths.get(imageLocation, filename), bytes);
+    }
+
+    @Override
+    public Path retrieveImagePath(String filename) {
+        return Paths.get(imageLocation, filename);
     }
 
 }
