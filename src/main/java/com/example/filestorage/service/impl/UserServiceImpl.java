@@ -24,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final FileService fileService;
 
+    @Override
     public RegisterResponse register(RegisterRequest registerRequest) {
         try {
             SecretKey key = new SecretKeySpec(registerRequest.getKey(), "AES");
@@ -33,7 +34,7 @@ public class UserServiceImpl implements UserService {
             });
 
             fileService.writeAesFile(hash + ".key", key.getEncoded());
-            User user = new User(hash, registerRequest.getName(), hash + ".key", null);
+            User user = new User(hash, registerRequest.getName(), hash + ".key", null, null);
             user = userRepository.save(user);
 
             return new RegisterResponse(new UserResponse(user.getId(), user.getName()));
@@ -41,6 +42,8 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
+
+
 
 //    public UserResponse findById(String id) {
 //        return userRepository.findById(id).map(this::toResponse).orElseThrow(() -> new ResourceNotFoundException("User [" + id + "] not found"));

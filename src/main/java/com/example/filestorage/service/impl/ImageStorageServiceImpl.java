@@ -1,6 +1,7 @@
 package com.example.filestorage.service.impl;
 
 import com.example.filestorage.dto.request.FileDownloadRequest;
+import com.example.filestorage.dto.request.ShareRequest;
 import com.example.filestorage.dto.response.ImageResponse;
 import com.example.filestorage.entity.Image;
 import com.example.filestorage.entity.User;
@@ -20,8 +21,10 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -59,7 +62,11 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     public List<ImageResponse> list(String userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User [" + userId + "] not found"));
 
-        return user.getOwn().stream().map(this::toImageResponse).collect(toList());
+        List<ImageResponse> own = user.getOwn().stream().map(image -> toImageResponse(image, false)).collect(toList());
+        List<ImageResponse> shared = user.getHasAccess().stream().map(image -> toImageResponse(image, true)).collect(toList());
+        own.addAll(shared);
+
+        return own;
     }
 
     @Override
@@ -68,13 +75,15 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         Set<Long> filesId = request.getFilesId();
         if(request.isDownloadAll()) {
             filesId = user.getOwn().stream().map(Image::getId).collect(toSet());
+            filesId.addAll(user.getHasAccess().stream().map(Image::getId).collect(toSet()));
         }
 
-        try(/*ServletOutputStream sos = response.getOutputStream();*/
-//                FileOutputStream sos = new FileOutputStream("C:\\Users\\hflbt\\Desktop\\zip.zip");
-                ByteArrayOutputStream sos = new ByteArrayOutputStream();
-                ZipOutputStream zos = new ZipOutputStream(sos)) {
-            for(Image img : user.getOwn()) {
+        Set<Image> images = new HashSet<>(user.getOwn());
+        images.addAll(user.getHasAccess());
+
+        try(ByteArrayOutputStream sos = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(sos)) {
+            for(Image img : images) {
                 Long fileId = filesId.stream().filter(id -> id.equals(img.getId())).findFirst().orElse(null);
                 if(fileId == null) {
                     continue;
@@ -100,8 +109,23 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         }
     }
 
-    private ImageResponse toImageResponse(Image image) {
-        return new ImageResponse(image.getId(), image.getOriginalFilename()/*, image.getOwner().getId()*/);
+    public void share(String userId, ShareRequest shareRequest) {
+        if(userId.equals(shareRequest.getUserIdToShare())) {
+            return;
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User [" + userId + "] not found"));
+        User targetUser = userRepository.findById(shareRequest.getUserIdToShare()).orElseThrow(() -> new ResourceNotFoundException("User [" + userId + "] not found"));
+
+        Set<Long> own = user.getOwn().stream().map(Image::getId).collect(Collectors.toSet());
+        Set<Long> ownShared = shareRequest.getFilesId().stream().filter(own::contains).collect(Collectors.toSet());
+
+        targetUser.getHasAccess().addAll(ownShared.stream().map(Image::new).collect(Collectors.toSet()));
+        userRepository.save(targetUser);
+    }
+
+    private ImageResponse toImageResponse(Image image, boolean isShared) {
+        return new ImageResponse(image.getId(), image.getOriginalFilename(), isShared/*, image.getOwner().getId()*/);
     }
 
 }

@@ -1,6 +1,7 @@
 package com.example.filestorage.service;
 
 import com.example.filestorage.dto.request.FileDownloadRequest;
+import com.example.filestorage.dto.request.ShareRequest;
 import com.example.filestorage.dto.response.ImageResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,4 +14,6 @@ public interface ImageStorageService {
     List<ImageResponse> list(String userId);
 
     byte[] zipAndDownloadAll(String userId, FileDownloadRequest request);
+
+    void share(String userId, ShareRequest shareRequest);
 }

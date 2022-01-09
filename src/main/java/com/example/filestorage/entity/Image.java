@@ -19,9 +19,11 @@ public class Image {
     private Long id;
 
     @Column(name = "original_file_name")
+    @EqualsAndHashCode.Exclude
     private String originalFilename;
 
     @Column(name = "file_name")
+    @EqualsAndHashCode.Exclude
     private String filename;
 
     @ManyToOne
@@ -29,4 +31,7 @@ public class Image {
     @EqualsAndHashCode.Exclude
     private User owner;
 
+    public Image(Long id) {
+        this.id = id;
+    }
 }

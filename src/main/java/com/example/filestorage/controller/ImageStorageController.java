@@ -1,6 +1,7 @@
 package com.example.filestorage.controller;
 
 import com.example.filestorage.dto.request.FileDownloadRequest;
+import com.example.filestorage.dto.request.ShareRequest;
 import com.example.filestorage.dto.response.ImageResponse;
 import com.example.filestorage.service.ImageStorageService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,11 @@ public class ImageStorageController {
         return ResponseEntity.ok().contentType(MediaType.valueOf("application/zip"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"test.zip\"")
                 .contentLength(content.length).body(inputStreamResource);
+    }
+
+    @PostMapping("/share")
+    public void share(@RequestHeader("User-Id") String userId, @Valid @RequestBody ShareRequest shareRequest) {
+        imageStorageService.share(userId, shareRequest);
     }
 
 }
